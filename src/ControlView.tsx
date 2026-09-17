@@ -13,6 +13,7 @@ export function ControlView({
   startPresentation,
   goToSlide,
   stopPresentation,
+  resetToIdle,
 }: {
   round: RoundState;
   connected: boolean;
@@ -20,6 +21,7 @@ export function ControlView({
   startPresentation: (deck: Choice) => void;
   goToSlide: (index: number) => void;
   stopPresentation: () => void;
+  resetToIdle: () => void;
 }) {
   const [seconds, setSeconds] = useState(10);
 
@@ -75,6 +77,13 @@ export function ControlView({
             Encerrar apresentação
           </button>
         </section>
+
+        <button
+          onClick={resetToIdle}
+          className="mt-auto text-center text-xs font-semibold text-ink-soft underline underline-offset-4"
+        >
+          Gerar QR code de novo
+        </button>
       </div>
     );
   }
@@ -168,8 +177,16 @@ export function ControlView({
         )}
       </section>
 
-      <footer className="mt-auto text-center text-xs text-ink-soft">
-        Página pessoal — não compartilhe este link, só o do quadro.
+      <footer className="mt-auto flex flex-col items-center gap-3 text-center text-xs text-ink-soft">
+        {round.status !== "idle" && (
+          <button
+            onClick={resetToIdle}
+            className="text-sm font-semibold text-ink-soft underline underline-offset-4"
+          >
+            Gerar QR code de novo
+          </button>
+        )}
+        <p>Página pessoal — não compartilhe este link, só o do quadro.</p>
       </footer>
     </div>
   );

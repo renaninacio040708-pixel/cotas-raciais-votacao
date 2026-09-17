@@ -122,6 +122,18 @@ export function useRound() {
     updateDoc(ROUND_DOC, { presentDeck: null, presentIndex: 0 }).catch(() => {});
   }
 
+  function resetToIdle() {
+    endedFlagged.current = false;
+    pending.current = { favor: 0, contra: 0 };
+    setDoc(ROUND_DOC, {
+      status: "idle",
+      startedAt: 0,
+      durationMs: 10000,
+      favor: 0,
+      contra: 0,
+    }).catch(() => {});
+  }
+
   return {
     round,
     connected,
@@ -130,6 +142,7 @@ export function useRound() {
     startPresentation,
     goToSlide,
     stopPresentation,
+    resetToIdle,
     pendingRef: pending,
   };
 }

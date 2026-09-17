@@ -4,8 +4,16 @@ import { ParticipantView } from "./ParticipantView";
 import { useRound } from "./useRound";
 
 export default function App() {
-  const { round, connected, tap, launchRound, startPresentation, goToSlide, stopPresentation } =
-    useRound();
+  const {
+    round,
+    connected,
+    tap,
+    launchRound,
+    startPresentation,
+    goToSlide,
+    stopPresentation,
+    resetToIdle,
+  } = useRound();
   const path =
     typeof window !== "undefined" ? window.location.pathname.replace(/\/+$/, "") : "";
 
@@ -21,6 +29,7 @@ export default function App() {
           startPresentation={startPresentation}
           goToSlide={goToSlide}
           stopPresentation={stopPresentation}
+          resetToIdle={resetToIdle}
         />
       ) : (
         <ParticipantView round={round} connected={connected} tap={tap} />

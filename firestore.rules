@@ -15,8 +15,16 @@ service cloud.firestore {
           && data.durationMs <= 60000;
       }
 
-      // Host launching a brand new round (doc may not exist yet).
-      allow create: if isFreshRound(request.resource.data);
+      function isIdleReset(data) {
+        return data.keys().hasOnly(['status', 'startedAt', 'durationMs', 'favor', 'contra'])
+          && data.status == 'idle'
+          && data.favor == 0
+          && data.contra == 0;
+      }
+
+      // Host launching a brand new round, or resetting back to idle (doc
+      // may not exist yet either way).
+      allow create: if isFreshRound(request.resource.data) || isIdleReset(request.resource.data);
 
       function isPresentationUpdate(data) {
         return data.diff(resource.data).affectedKeys().hasOnly(['presentDeck', 'presentIndex'])
@@ -30,6 +38,7 @@ service cloud.firestore {
       // flagging the round as ended, or the control page driving the
       // on-stage presentation (which deck, which slide).
       allow update: if isFreshRound(request.resource.data)
+        || isIdleReset(request.resource.data)
         || (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['favor', 'contra', 'status'])
             && (!('status' in request.resource.data.diff(resource.data).affectedKeys())
                 || request.resource.data.status == 'ended'))
