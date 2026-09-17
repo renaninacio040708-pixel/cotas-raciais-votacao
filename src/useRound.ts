@@ -11,6 +11,8 @@ export interface RoundState {
   durationMs: number;
   favor: number;
   contra: number;
+  presentDeck: Choice | null;
+  presentIndex: number;
 }
 
 const ROUND_DOC = doc(db, "game", "round");
@@ -22,6 +24,8 @@ const DEFAULT_ROUND: RoundState = {
   durationMs: 10000,
   favor: 0,
   contra: 0,
+  presentDeck: null,
+  presentIndex: 0,
 };
 
 export function useRound() {
@@ -46,6 +50,8 @@ export function useRound() {
           durationMs: data.durationMs ?? 10000,
           favor: data.favor ?? 0,
           contra: data.contra ?? 0,
+          presentDeck: data.presentDeck ?? null,
+          presentIndex: data.presentIndex ?? 0,
         });
         if (data.status !== "running") endedFlagged.current = false;
       },
@@ -104,5 +110,26 @@ export function useRound() {
     });
   }
 
-  return { round, connected, tap, launchRound, pendingRef: pending };
+  function startPresentation(deck: Choice) {
+    updateDoc(ROUND_DOC, { presentDeck: deck, presentIndex: 0 }).catch(() => {});
+  }
+
+  function goToSlide(index: number) {
+    updateDoc(ROUND_DOC, { presentIndex: Math.max(0, index) }).catch(() => {});
+  }
+
+  function stopPresentation() {
+    updateDoc(ROUND_DOC, { presentDeck: null, presentIndex: 0 }).catch(() => {});
+  }
+
+  return {
+    round,
+    connected,
+    tap,
+    launchRound,
+    startPresentation,
+    goToSlide,
+    stopPresentation,
+    pendingRef: pending,
+  };
 }

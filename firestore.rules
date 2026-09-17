@@ -18,12 +18,22 @@ service cloud.firestore {
       // Host launching a brand new round (doc may not exist yet).
       allow create: if isFreshRound(request.resource.data);
 
-      // Either a host re-launching a round (full reset) or a participant
-      // tapping / flagging the round as ended (only those fields change).
+      function isPresentationUpdate(data) {
+        return data.diff(resource.data).affectedKeys().hasOnly(['presentDeck', 'presentIndex'])
+          && (data.presentDeck == null || data.presentDeck in ['favor', 'contra'])
+          && data.presentIndex is int
+          && data.presentIndex >= 0
+          && data.presentIndex < 100;
+      }
+
+      // A host re-launching a round (full reset), a participant tapping /
+      // flagging the round as ended, or the control page driving the
+      // on-stage presentation (which deck, which slide).
       allow update: if isFreshRound(request.resource.data)
         || (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['favor', 'contra', 'status'])
             && (!('status' in request.resource.data.diff(resource.data).affectedKeys())
-                || request.resource.data.status == 'ended'));
+                || request.resource.data.status == 'ended'))
+        || isPresentationUpdate(request.resource.data);
     }
 
     match /{document=**} {

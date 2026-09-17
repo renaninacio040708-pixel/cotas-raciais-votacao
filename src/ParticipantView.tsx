@@ -19,54 +19,45 @@ function useCountdown(round: RoundState) {
   return msLeft;
 }
 
-function MashButton({
+function MashZone({
   choice,
   count,
-  onTap,
-  disabled,
 }: {
   choice: Choice;
   count: number;
-  onTap: (c: Choice) => void;
-  disabled: boolean;
 }) {
   const [pressed, setPressed] = useState(false);
   const isFavor = choice === "favor";
   const deck = DECKS[choice];
 
   return (
-    <button
-      disabled={disabled}
-      onPointerDown={(e) => {
-        e.preventDefault();
-        setPressed(true);
-        onTap(choice);
-      }}
+    <div
+      className={`flex flex-1 select-none flex-col items-center justify-center gap-6 text-center transition-colors ${
+        isFavor ? "bg-favor-soft" : "bg-contra-soft"
+      } ${pressed ? (isFavor ? "bg-favor/30" : "bg-contra/20") : ""}`}
+      style={{ touchAction: "manipulation" }}
+      onPointerDown={() => setPressed(true)}
       onPointerUp={() => setPressed(false)}
       onPointerLeave={() => setPressed(false)}
-      className={`group relative flex flex-1 select-none flex-col items-center justify-center gap-4 overflow-hidden rounded-2xl border-2 px-6 py-10 text-center transition-transform active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-40 ${
-        isFavor
-          ? "border-favor bg-favor-soft"
-          : "border-contra bg-contra-soft"
-      } ${pressed ? "scale-[0.97]" : ""}`}
-      style={{ touchAction: "manipulation" }}
     >
       <span
-        className={`text-xs font-semibold uppercase tracking-[0.25em] ${
+        className={`text-sm font-semibold uppercase tracking-[0.3em] ${
           isFavor ? "text-favor" : "text-contra"
         }`}
       >
         {deck.label}
       </span>
       <span
-        className={`font-serif text-6xl font-bold tabular-nums sm:text-7xl ${
+        className={`font-serif text-8xl font-bold tabular-nums ${
           isFavor ? "text-favor" : "text-contra"
         }`}
       >
         {count}
       </span>
-      <span className="text-sm text-ink-soft">toque o mais rápido possível</span>
-    </button>
+      <span className="max-w-[14rem] text-sm text-ink-soft">
+        toque bem rápido nesta metade da tela
+      </span>
+    </div>
   );
 }
 
@@ -89,6 +80,38 @@ export function ParticipantView({
           ? "favor"
           : "contra"
       : null;
+
+  if (round.status === "running") {
+    return (
+      <div className="fixed inset-0 flex flex-col">
+        <div className="flex flex-col items-center gap-1 bg-paper px-4 py-3">
+          <span className="font-serif text-4xl font-bold tabular-nums text-ink">
+            {(msLeft / 1000).toFixed(1)}s
+          </span>
+          <div className="h-2 w-full max-w-sm overflow-hidden rounded-full bg-paper-dim">
+            <div
+              className="h-full rounded-full bg-ink transition-[width] duration-100 ease-linear"
+              style={{ width: `${(msLeft / round.durationMs) * 100}%` }}
+            />
+          </div>
+        </div>
+        <div className="flex flex-1">
+          <div
+            className="flex flex-1"
+            onClick={() => tap("favor")}
+          >
+            <MashZone choice="favor" count={round.favor} />
+          </div>
+          <div
+            className="flex flex-1"
+            onClick={() => tap("contra")}
+          >
+            <MashZone choice="contra" count={round.contra} />
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="mx-auto flex min-h-svh max-w-3xl flex-col gap-10 px-6 py-12 sm:py-16">
@@ -137,26 +160,6 @@ export function ParticipantView({
                 <p className="mt-1 text-sm text-ink-soft">{DECKS[c].blurb}</p>
               </div>
             ))}
-          </div>
-        </section>
-      )}
-
-      {round.status === "running" && (
-        <section className="flex flex-col gap-6">
-          <div className="flex flex-col items-center gap-1">
-            <span className="font-serif text-5xl font-bold tabular-nums text-ink">
-              {(msLeft / 1000).toFixed(1)}s
-            </span>
-            <div className="h-2 w-full max-w-sm overflow-hidden rounded-full bg-paper-dim">
-              <div
-                className="h-full rounded-full bg-ink transition-[width] duration-100 ease-linear"
-                style={{ width: `${(msLeft / round.durationMs) * 100}%` }}
-              />
-            </div>
-          </div>
-          <div className="flex flex-col gap-4 sm:flex-row">
-            <MashButton choice="favor" count={round.favor} onTap={tap} disabled={false} />
-            <MashButton choice="contra" count={round.contra} onTap={tap} disabled={false} />
           </div>
         </section>
       )}
